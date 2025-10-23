@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Practice App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #000;
+            border: 1px solid #fff;
+            max-width: 800px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: normal;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .setup-section {
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #fff;
+            background: #000;
+            color: #fff;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        button {
+            background: #000;
+            color: #fff;
+            border: 1px solid #fff;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+        }
+
+        button:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        .typing-section {
+            display: none;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #fff;
+            padding-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .stat-item {
+            display: flex;
+            gap: 10px;
+        }
+
+        .stat-label {
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-weight: normal;
+        }
+
+        .text-display {
+            background: #000;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            line-height: 1.8;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            min-height: 120px;
+            position: relative;
+            border-top: 1px solid #fff;
+            border-bottom: 1px solid #fff;
+        }
+
+        .char {
+            position: relative;
+            white-space: pre;
+        }
+
+        .char.correct {
+            color: #fff;
+            opacity: 0.5;
+        }
+
+        .char.incorrect {
+            color: #ff0000;
+            background: rgba(255, 0, 0, 0.2);
+        }
+
+        .char.current {
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 3px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .typing-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #fff;
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+        }
+
+        .typing-input:focus {
+            outline: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 2px;
+            background: #333;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #fff;
+            transition: width 0.3s ease;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .completion-message {
+            text-align: left;
+            padding: 20px;
+            border: 1px solid #fff;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .completion-message h2 {
+            font-size: 16px;
+            margin-bottom: 20px;
+            font-weight: normal;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .final-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .final-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dotted #666;
+        }
+
+        .final-stat-label {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .final-stat-value {
+            font-weight: normal;
+        }
+
+        /* Terminal cursor effect for input */
+        @keyframes terminal-cursor {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .typing-input {
+            position: relative;
+        }
+
+        /* ASCII art divider */
+        .divider {
+            text-align: center;
+            margin: 10px 0;
+            opacity: 0.5;
+            font-size: 12px;
+            letter-spacing: 3px;
+        }
+    </style>
+    <!-- Inline SVG favicon matching the app's monochrome style -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='4' width='56' height='56' rx='6' ry='6' fill='white' stroke='black' stroke-width='3'/%3E%3Ctext x='50%25' y='58%25' font-family='Courier New, monospace' font-size='36' fill='black' text-anchor='middle' dominant-baseline='middle'%3ET%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+    <div class="container">
+        <h1>[ TYPING PRACTICE v1.0 ]</h1>
+        
+        <div class="setup-section" id="setupSection">
+            <div class="divider">════════════════════════════════════════════════</div>
+            <textarea id="textInput" placeholder="> PASTE TEXT HERE"></textarea>
+            <div class="button-group">
+                <button onclick="startTyping()">[START]</button>
+                <button onclick="loadSampleText()">[SAMPLE]</button>
+            </div>
+        </div>
+
+        <div class="typing-section" id="typingSection">
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">WPM:</span>
+                    <span class="stat-value" id="wpm">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">ACC:</span>
+                    <span class="stat-value" id="accuracy">100%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">TIME:</span>
+                    <span class="stat-value" id="time">0:00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">PROG:</span>
+                    <span class="stat-value" id="progress">0%</span>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+
+            <div class="text-display" id="textDisplay"></div>
+            
+            <input 
+                type="text" 
+                class="typing-input" 
+                id="typingInput" 
+                placeholder="> _"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+            >
+
+            <div class="controls">
+                <button onclick="resetTyping()">[RESET]</button>
+                <button onclick="newText()">[NEW]</button>
+                <button onclick="pauseResume()" id="pauseBtn">[PAUSE]</button>
+            </div>
+        </div>
+
+        <div class="completion-message" id="completionMessage">
+            <h2>[ SESSION COMPLETE ]</h2>
+            <div class="divider">════════════════════════════════════════════════</div>
+            <div class="final-stats">
+                <div class="final-stat">
+                    <span class="final-stat-label">WORDS PER MINUTE</span>
+                    <span class="final-stat-value" id="finalWpm">0</span>
+                </div>
+                <div class="final-stat">
+                    <span class="final-stat-label">ACCURACY</span>
+                    <span class="final-stat-value" id="finalAccuracy">0%</span>
+                </div>
+                <div class="final-stat">
+                    <span class="final-stat-label">TOTAL TIME</span>
+                    <span class="final-stat-value" id="finalTime">0:00</span>
+                </div>
+            </div>
+            <div class="divider">════════════════════════════════════════════════</div>
+            <div class="button-group">
+                <button onclick="resetTyping()">[RETRY]</button>
+                <button onclick="newText()">[NEW TEXT]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let originalText = '';
+        let currentPosition = 0;
+        let startTime = null;
+        let errors = 0;
+        let totalKeystrokes = 0;
+        let timer = null;
+        let isPaused = false;
+        let elapsedTime = 0;
+        let displayLineLength = 60; // Characters per line in display
+
+        // Treat curly and straight quotes as equivalent
+        function normChar(ch) {
+            if (!ch) return ch;
+            const code = ch.charCodeAt(0);
+            // Right/left single quotation marks and similar → '\''
+            if (ch === '\u2019' || ch === '\u2018' || ch === '\u2032' || ch === '\u2035' || ch === '\u02BC' || ch === '\u275B' || ch === '\u275C') return "'";
+            // Right/left double quotation marks and similar → '"'
+            if (ch === '\u201C' || ch === '\u201D' || ch === '\u2033' || ch === '\u2036' || ch === '\u275D' || ch === '\u275E') return '"';
+            return ch;
+        }
+
+        function charsEqual(a, b) { return normChar(a) === normChar(b); }
+
+        function loadSampleText() {
+            const sampleText = `The quick brown fox jumps over the lazy dog. This pangram sentence contains every letter of the alphabet at least once. Typing practice helps improve both speed and accuracy. Keep your fingers on the home row and maintain good posture while typing. With consistent practice, you'll see improvement in your typing skills over time.`;
+            document.getElementById('textInput').value = sampleText;
+        }
+
+        function startTyping() {
+            const textInput = document.getElementById('textInput').value.trim();
+            if (!textInput) {
+                alert('Please paste some text first!');
+                return;
+            }
+
+            originalText = textInput;
+            currentPosition = 0;
+            errors = 0;
+            totalKeystrokes = 0;
+            startTime = null;
+            isPaused = false;
+            elapsedTime = 0;
+
+            document.getElementById('setupSection').style.display = 'none';
+            document.getElementById('typingSection').style.display = 'block';
+            document.getElementById('completionMessage').style.display = 'none';
+
+            renderText();
+            document.getElementById('typingInput').value = '';
+            document.getElementById('typingInput').focus();
+
+            updateStats();
+        }
+
+        function renderText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = '';
+
+            // Calculate visible window (3 lines before and after current position)
+            const charsPerLine = displayLineLength;
+            const currentLine = Math.floor(currentPosition / charsPerLine);
+            const startLine = Math.max(0, currentLine - 1);
+            const endLine = currentLine + 2;
+            
+            const startChar = startLine * charsPerLine;
+            const endChar = Math.min(originalText.length, endLine * charsPerLine);
+
+            // Create visible text with proper line breaks
+            for (let i = startChar; i < endChar; i++) {
+                const char = originalText[i];
+                const span = document.createElement('span');
+                span.className = 'char';
+                
+                if (i === currentPosition) {
+                    span.classList.add('current');
+                } else if (i < currentPosition) {
+                    const inputEl = document.getElementById('typingInput');
+                    const typedSliceLen = inputEl.value.length;
+                    const offset = currentPosition - typedSliceLen;
+                    const typedChar = inputEl.value[i - offset];
+                    if (charsEqual(typedChar, char)) {
+                        span.classList.add('correct');
+                    } else {
+                        span.classList.add('incorrect');
+                    }
+                }
+                
+                span.textContent = char;
+                display.appendChild(span);
+
+                // Add line break for display purposes
+                if ((i + 1 - startChar) % charsPerLine === 0 && i < endChar - 1) {
+                    display.appendChild(document.createElement('br'));
+                }
+            }
+
+            // Show context indicator if there's more text
+            if (endChar < originalText.length) {
+                const indicator = document.createElement('div');
+                indicator.style.opacity = '0.5';
+                indicator.style.marginTop = '10px';
+                indicator.textContent = '...';
+                display.appendChild(indicator);
+            }
+        }
+
+        function updateStats() {
+            if (!startTime && currentPosition > 0) return;
+
+            // Calculate WPM
+            let wpm = 0;
+            if (startTime && !isPaused) {
+                const currentTime = Date.now();
+                const timeInMinutes = (currentTime - startTime + elapsedTime) / 60000;
+                const wordsTyped = currentPosition / 5; // Standard: 5 characters = 1 word
+                wpm = Math.round(wordsTyped / timeInMinutes);
+            }
+
+            // Calculate accuracy
+            const accuracy = totalKeystrokes > 0 
+                ? Math.round(((totalKeystrokes - errors) / totalKeystrokes) * 100)
+                : 100;
+
+            // Calculate progress
+            const progress = Math.round((currentPosition / originalText.length) * 100);
+
+            // Update display
+            document.getElementById('wpm').textContent = wpm;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+            document.getElementById('progress').textContent = progress + '%';
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            // Update time
+            if (startTime && !isPaused) {
+                const totalTime = Date.now() - startTime + elapsedTime;
+                const minutes = Math.floor(totalTime / 60000);
+                const seconds = Math.floor((totalTime % 60000) / 1000);
+                document.getElementById('time').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function handleTyping(event) {
+            if (isPaused) return;
+
+            const input = event.target;
+            const typedText = input.value;
+
+            // Start timer on first keystroke
+            if (!startTime && typedText.length > 0) {
+                startTime = Date.now();
+                timer = setInterval(updateStats, 100);
+            }
+
+            // Handle backspace
+            if (typedText.length < currentPosition) {
+                currentPosition = typedText.length;
+                renderText();
+                updateStats();
+                return;
+            }
+
+            // Check new characters
+            for (let i = currentPosition; i < typedText.length; i++) {
+                totalKeystrokes++;
+                if (!charsEqual(typedText[i], originalText[i])) {
+                    errors++;
+                }
+            }
+
+            currentPosition = typedText.length;
+
+            // Check if completed
+            if (currentPosition >= originalText.length) {
+                completeTyping();
+                return;
+            }
+
+            renderText();
+            updateStats();
+        }
+
+        function completeTyping() {
+            clearInterval(timer);
+            isPaused = true;
+
+            const totalTime = Date.now() - startTime + elapsedTime;
+            const minutes = Math.floor(totalTime / 60000);
+            const seconds = Math.floor((totalTime % 60000) / 1000);
+            const wordsTyped = currentPosition / 5;
+            const timeInMinutes = totalTime / 60000;
+            const wpm = Math.round(wordsTyped / timeInMinutes);
+            const accuracy = Math.round(((totalKeystrokes - errors) / totalKeystrokes) * 100);
+
+            document.getElementById('finalWpm').textContent = wpm;
+            document.getElementById('finalAccuracy').textContent = accuracy + '%';
+            document.getElementById('finalTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            document.getElementById('completionMessage').style.display = 'block';
+        }
+
+        function resetTyping() {
+            currentPosition = 0;
+            errors = 0;
+            totalKeystrokes = 0;
+            startTime = null;
+            isPaused = false;
+            elapsedTime = 0;
+            
+            clearInterval(timer);
+            
+            document.getElementById('typingInput').value = '';
+            document.getElementById('completionMessage').style.display = 'none';
+            
+            renderText();
+            updateStats();
+            document.getElementById('typingInput').focus();
+        }
+
+        function newText() {
+            document.getElementById('setupSection').style.display = 'block';
+            document.getElementById('typingSection').style.display = 'none';
+            document.getElementById('completionMessage').style.display = 'none';
+            document.getElementById('textInput').value = '';
+            clearInterval(timer);
+        }
+
+        function pauseResume() {
+            const btn = document.getElementById('pauseBtn');
+            
+            if (isPaused) {
+                isPaused = false;
+                startTime = Date.now();
+                timer = setInterval(updateStats, 100);
+                btn.textContent = '[PAUSE]';
+                document.getElementById('typingInput').focus();
+            } else {
+                isPaused = true;
+                elapsedTime += Date.now() - startTime;
+                clearInterval(timer);
+                btn.textContent = '[RESUME]';
+            }
+        }
+
+        // Event listener
+        document.getElementById('typingInput').addEventListener('input', handleTyping);
+
+        // Prevent tab key from moving focus
+        document.getElementById('typingInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                // Type a tab character instead
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 1;
+                
+                // Trigger input event manually
+                this.dispatchEvent(new Event('input'));
+            }
+        });
+    </script>
+</body>
+</html>
